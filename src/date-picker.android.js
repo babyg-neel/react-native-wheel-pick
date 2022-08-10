@@ -1,11 +1,10 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, View } from 'react-native';
-// import { ColorPropType, ViewPropTypes as RNViewPropTypes } from 'deprecated-react-native-prop-types'
+import { ColorPropType, StyleSheet, View, ViewPropTypes as RNViewPropTypes } from 'react-native';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import Picker from './picker';
 
-// const ViewPropTypes = RNViewPropTypes || View.propTypes;
+const ViewPropTypes = RNViewPropTypes || View.propTypes;
 const firstTimeOnChange = {
   year: true,
   month: true,
@@ -20,10 +19,13 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    width : 320,
+    alignSelf :'center',
   },
 });
 
 const stylesFromProps = props => ({
+  itemSpace: props.itemSpace,
   textColor: props.textColor,
   textSize: props.textSize,
   style: props.style,
@@ -42,9 +44,10 @@ export default class DatePicker extends PureComponent {
     minimumDate: PropTypes.instanceOf(Date),
     mode: PropTypes.oneOf(['date', 'time', 'datetime']),
     onDateChange: PropTypes.func.isRequired,
-    // style: ViewPropTypes.style,
-    // textColor: ColorPropType,
+    style: ViewPropTypes.style,
+    textColor: ColorPropType,
     textSize: PropTypes.number,
+    itemSpace: PropTypes.number,
   };
 
   static defaultProps = {
@@ -56,11 +59,12 @@ export default class DatePicker extends PureComponent {
     order: 'M-D-Y',
     mode: 'date',
     maximumDate: moment().add(10, 'years').toDate(),
-    minimumDate: moment().add(-10, 'years').toDate(),
+    minimumDate: moment().add(-20, 'years').toDate(),
     date: new Date(),
     style: null,
     textColor: '#333',
     textSize: 26,
+    itemSpace: 20,
   };
 
   constructor(props) {
@@ -93,13 +97,9 @@ export default class DatePicker extends PureComponent {
     }
   }
 
-  static getDerivedStateFromProps(nextProps, prevState) {
+  getDerivedStateFromProps(nextProps, prevState) {
     if (prevState.date !== nextProps.date) {
-
-      if(typeof this === 'object' && typeof this.parseDate === 'function'){
-        this.parseDate(nextProps.date);
-      }
-
+      this.parseDate(nextProps.date);
       return { date: nextProps.date }
     }
     else return null;
@@ -117,7 +117,7 @@ export default class DatePicker extends PureComponent {
     this.newValue.year = year;
     this.checkDate(oldYear, this.newValue.month);
     if(firstTimeOnChange.year) {
-      firstTimeOnChange.year = false
+      return firstTimeOnChange.year = false
     }
     this.props.onDateChange(this.getValue());
   };
@@ -128,7 +128,7 @@ export default class DatePicker extends PureComponent {
     this.newValue.month = month - 1;
     this.checkDate(this.newValue.year, oldMonth);
     if(firstTimeOnChange.month) {
-      firstTimeOnChange.month = false
+      return firstTimeOnChange.month = false
     }
     this.props.onDateChange(this.getValue());
   };
@@ -137,7 +137,7 @@ export default class DatePicker extends PureComponent {
     this.newValue.date = date;
     this.checkDate(this.newValue.year, this.newValue.month);
     if(firstTimeOnChange.date) {
-      firstTimeOnChange.date = false
+      return firstTimeOnChange.date = false
     }
     this.props.onDateChange(this.getValue());
   };
@@ -145,7 +145,7 @@ export default class DatePicker extends PureComponent {
   onHourChange = (hour) => {
     this.newValue.hour = hour;
     if(firstTimeOnChange.hour) {
-      firstTimeOnChange.hour = false
+      return firstTimeOnChange.hour = false
     }
     this.props.onDateChange(this.getValue());
   };
@@ -153,7 +153,7 @@ export default class DatePicker extends PureComponent {
   onMinuteChange = (minute) => {
     this.newValue.minute = minute;
     if(firstTimeOnChange.minute) {
-      firstTimeOnChange.minute = false
+      return firstTimeOnChange.minute = false
     }
     this.props.onDateChange(this.getValue());
   };
@@ -169,10 +169,10 @@ export default class DatePicker extends PureComponent {
   }
 
   render() {
-    const width_wrapper = this.props.style.width || '100%';
-
     return (
-      <View style={{...styles.row, width: width_wrapper}}>
+      <View style={styles.row}>
+        <View style={{top: 93,backgroundColor:'#000',borderRadius:5,height: 34,
+        width:'95%',position:'absolute',start:1,alignSelf :'center'}}></View>
         {['date', 'datetime'].includes(this.props.mode) && this.datePicker}
         {['time', 'datetime'].includes(this.props.mode) && this.timePicker}
       </View>
@@ -194,8 +194,7 @@ export default class DatePicker extends PureComponent {
           <View key='date' style={styles.picker}>
             <Picker
               {...propsStyles}
-              {...this.props}
-              style={{...this.props.style, width: '100%'}}
+              style={this.props.style}
               ref={(date) => { this.dateComponent = date; }}
               selectedValue={this.state.date.getDate()}
               pickerData={this.state.dayRange}
@@ -207,8 +206,7 @@ export default class DatePicker extends PureComponent {
           <View key='month' style={styles.picker}>
             <Picker
               {...propsStyles}
-              {...this.props}
-              style={{...this.props.style, width: '100%'}}
+              style={this.props.style}
               ref={(month) => { this.monthComponent = month; }}
               selectedValue={this.state.date.getMonth() + 1}
               pickerData={this.state.monthRange}
@@ -220,8 +218,7 @@ export default class DatePicker extends PureComponent {
           <View key='year' style={styles.picker}>
             <Picker
               {...propsStyles}
-              {...this.props}
-              style={{...this.props.style, width: '100%'}}
+              style={this.props.style}
               ref={(year) => { this.yearComponent = year; }}
               selectedValue={this.state.date.getFullYear()}
               pickerData={this.state.yearRange}
